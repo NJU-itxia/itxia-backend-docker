@@ -10,17 +10,15 @@
 
 ##启动docker
 `cd itxia-docker`  
-`sudo docker-compose up --build` 
+`sudo docker-compose up --no-build` 
 
 ##mysql初始化
 `cd itxia-docker`
-`sudo docker-compose run website python manage.py db init`  
-
-`sudo docker-compose run website python manage.py db migrate -m 'new'` 
-
-`sudo docker-compose run website python manage.py db upgrade`  
-
-`sudo docker-compose run website python manage.py testdb`  
+```
+sudo docker-compose run --rm website python manage.py db init \
+&& python manage.py db migrate -m 'new' \
+&& python manage.py db upgrade \
+&& python manage.py testdb  
 
 ##测试api
 `cd itxia-docker`  
