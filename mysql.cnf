@@ -1,0 +1,13 @@
+[client]
+default-character-set=utf8
+max_allowed_packet=1G
+
+[mysql]
+default-character-set=utf8
+max_allowed_packet=1G
+
+[mysqld]
+collation-server = utf8_unicode_ci
+init-connect='SET NAMES utf8'
+character-set-server = utf8
+max_allowed_packet=1G
