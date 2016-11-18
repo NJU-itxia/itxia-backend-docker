@@ -18,7 +18,11 @@
 sudo docker-compose run --rm website python manage.py db init
 sudo docker-compose run --rm website python manage.py db migrate -m 'new' \
 sudo docker-compose run --rm website python manage.py db upgrade \
-sudo docker-compose run --rm website python manage.py testdb  
+sudo docker-compose run --rm website python manage.py testdb 
+
+###最好做这一步
+`sudo docker-compose stop` 
+`sudo docker-compose up` 
 
 ##测试api
 `cd itxia-docker`  
