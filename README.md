@@ -9,19 +9,19 @@
 `git clone https://github.com/imphoney/itxia-docker.git`
 
 ##启动docker
-`cd itxia-docker`
-`sudo docker-compose up --build`
+`cd itxia-docker`  
+`sudo docker-compose up --build` 
 
 ##mysql初始化
 `cd itxia-docker`
-`sudo docker-compose run website python manage.py db init`
-`sudo docker-compose run website python manage.py db migrate -m 'new'`
-`sudo docker-compose run website python manage.py db upgrade`
-`sudo docker-compose run website python manage.py testdb`
+`sudo docker-compose run website python manage.py db init`  
+`sudo docker-compose run website python manage.py db migrate -m 'new'`  
+`sudo docker-compose run website python manage.py db upgrade`  
+`sudo docker-compose run website python manage.py testdb`  
 
 ##测试api
-`cd itxia-docker`
-`pip install -r requirements.txt`
-`python client_test.py`
+`cd itxia-docker`  
+`pip install -r requirements.txt`  
+`python client_test.py`  
 `
 
