@@ -10,7 +10,7 @@
 
 ##启动docker
 `cd itxia-docker`  
-`sudo docker-compose up --no-build` 
+`sudo docker-compose up ` 
 
 ##mysql初始化
 `cd itxia-docker`
