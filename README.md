@@ -23,6 +23,7 @@ sudo docker-compose run --rm website python manage.py testdb
 
 ###最好做这一步
 `sudo docker-compose stop` 
+
 `sudo docker-compose up` 
 
 ##测试api
