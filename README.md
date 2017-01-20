@@ -6,7 +6,7 @@
 [install docker-compose in ubuntu]: https://docs.docker.com/v1.7/compose/install/
 
 ##git仓库
-`git clone https://github.com/imphoney/itxia-docker.git`
+`https://github.com/NJU-itxia/itxia-docker.git`
 
 ##启动docker
 `cd itxia-docker`  
