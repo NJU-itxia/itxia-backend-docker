@@ -189,7 +189,7 @@ if __name__ == '__main__':
             api.login(phone_number, password)
             #测试提交表单，含图片
             print "准备提交表单，已经自动写好"
-            api.post_form('xianlin', 'mac', 'win', '電腦壞了',['1.png', '2.png'])
+            api.post_form('xianlin', 'mac', 'win', '電腦壞了',['1.jpg', '2.jpg'])
     
         if testcase == '3':
             #测试用户查看自己的所有表单

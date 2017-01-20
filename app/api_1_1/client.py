@@ -12,7 +12,7 @@ from . import api
 
 
 @api.route('/client/login', methods=['POST'])
-def login():
+def client_login():
     phone_number = request.get_json().get('phone_number')
     encryption_str = request.get_json().get('encryption_str')
     random_str = request.get_json().get('random_str')
@@ -58,7 +58,7 @@ def client():
 
 @api.route('/client/logout')
 @login_check
-def logout():
+def client_logout():
     client = g.current_client
 
     pipeline = redis.pipeline()
@@ -70,7 +70,7 @@ def logout():
 
 @api.route('/client/set-head-picture', methods=['POST'])
 @login_check
-def set_head_picture():
+def client_set_head_picture():
     avatar_picture = request.get_json().get('avatar_picture')
     client = g.current_client
     client.avatar_picture = avatar_picture
@@ -216,7 +216,7 @@ def form_post():
 
 @api.route('/client/forms', methods=['GET'])
 @login_check
-def get_forms():
+def client_forms():
     client = g.current_client
     page = request.args.get('page', 1, type=int)
     pagination = Form.query.filter_by(post_client_id=client.id).paginate(
@@ -240,27 +240,3 @@ def get_forms():
         'count': status_json
         })
         
-
-@api.route('/client/forms/<int:id>', methods=['GET'])
-@login_check
-def get_form(id):
-    form = Form.query.get_or_404(id)
-    if g.current_client.id != form.post_client_id: 
-        return jsonify({'code': 0, 'message': '沒有权限'})
-    return jsonify({'code': 1, 'forms': form.to_json()})
-    
-
-@api.route('/client/forms/<int:id>/edit', methods=['PUT'])
-@login_check
-def edit_form(id):
-    form = Form.query.get_or_404(id)
-    if g.current_client.id != form.post_client_id: 
-        return jsonify({'code': 0, 'message': '沒有权限'})
-    form.campus = request.get_json().get('campus')
-    form.machine_model = request.get_json().get('machine_model')
-    form.OS = request.get_json().get('OS')
-    form.description = request.get_json().get('description')
-    form.pictures = request.get_json().get('pictures')
-    db.session.add(form)
-    db.session.commit(form)
-    return jsonify({'code': 1, 'message': '修改成功'})    
