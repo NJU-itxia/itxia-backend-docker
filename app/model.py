@@ -4,8 +4,8 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from flask import url_for
 import random
 
-class Server(db.Model):
-    __tablename__ = 'server'
+class Manager(db.Model):
+    __tablename__ = 'manager'
 
     id = db.Column('id', db.Integer, primary_key=True)
     password = db.Column('password', db.String(30), nullable=False)
@@ -14,7 +14,7 @@ class Server(db.Model):
     campus = db.Column('campus', db.String(10), index=True, nullable=False)
     avatar_picture = db.Column('avatar_picture', db.String(120), default='')
     register_time = db.Column('register_time', db.DateTime, index=True, default=datetime.now)
-    handle_forms = db.relationship('Form', backref='handle_server', lazy='dynamic', uselist=True)
+    handle_forms = db.relationship('Form', backref='handle_manager', lazy='dynamic', uselist=True)
     
     
     @staticmethod
@@ -25,12 +25,12 @@ class Server(db.Model):
         
         seed()
         for i in range(count):
-            s = Server(email=forgery_py.internet.email_address(),
+            m = Manager(email=forgery_py.internet.email_address(),
                      password=forgery_py.lorem_ipsum.word(),
                      campus=['gulou', 'xianlin'][random.randint(0,1)],
                      username=forgery_py.lorem_ipsum.word(),
                      register_time=forgery_py.date.date(True))
-            db.session.add(s)
+            db.session.add(m)
             try:
                 db.session.commit()
                 db.session.remove()
@@ -49,7 +49,7 @@ class Form(db.Model):
     OS = db.Column('OS', db.String(64), nullable = False)
     description = db.Column('description', db.String(240), nullable=False)
     picture_content = db.Column('picture_content', db.String(900))
-    handle_server_id = db.Column('handle_server_id', db.Integer, db.ForeignKey('server.id'))
+    handle_manager_id = db.Column('handle_manager_id', db.Integer, db.ForeignKey('manager.id'))
     post_client_id = db.Column('post_client_id', db.Integer, db.ForeignKey('client.id'))
     
     
@@ -67,14 +67,14 @@ class Form(db.Model):
     
     @hybrid_property
     def state(self):
-        if not self.handle_server:
+        if not self.handle_manager:
             return 'waiting'
         return self.status
 
 
     @state.setter
-    def state(self, working_done):
-        self.status = working_done
+    def state(self, managing):
+        self.status = managing
     
     
     @staticmethod
@@ -86,31 +86,31 @@ class Form(db.Model):
         client_count = Client.query.count()
         for i in range(count):
             c = Client.query.offset(randint(0, client_count - 1)).first()
-            s = Server.query.offset(randint(0, client_count - 1)).first()
+            m = Manager.query.offset(randint(0, client_count - 1)).first()
             f = Form(description=forgery_py.lorem_ipsum.words(10),
                      post_time=forgery_py.date.date(True),
                      campus=['gulou', 'xianlin'][random.randint(0,1)],
                      machine_model=forgery_py.lorem_ipsum.word(),
                      OS=forgery_py.lorem_ipsum.word(),
                      post_client=c,
-                     handle_server=s)
+                     handle_manager=m)
             f.state = ['working', 'done'][random.randint(0,1)],
             db.session.add(f)
             db.session.commit()  
 
         
     def to_json(self):
-        handle_server_username = None
+        handle_manager_username = None
         post_client_phone_number = None
         if self.post_client:
             post_client_phone_number = self.post_client.phone_number
-        if self.handle_server:
-            handle_server_username = self.handle_server.username
+        if self.handle_manager:
+            handle_manager_username = self.handle_manager.username
             
         json_post = {
             'url': url_for('api1_1.get_form', id=self.id, _external=True),
             'post_client_phone_number': post_client_phone_number,
-            'handle_server_username': handle_server_username,
+            'handle_manager_username': handle_manager_username,
             'campus': self.campus,
             'machine_model': self.machine_model,
             'OS': self.OS,

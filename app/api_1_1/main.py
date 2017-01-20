@@ -1,6 +1,6 @@
 # coding:utf-8
 from flask import request, jsonify, g, current_app
-from app.model import Client, Server, Form
+from app.model import Client, Manager, Form
 from .. import db, redis
 import uuid
 
@@ -12,10 +12,10 @@ def before_request():
     token = request.headers.get('token')
     role = request.headers.get('role')
     print request.endpoint
-    if role == 'server':
+    if role == 'manager':
         username = redis.get('token:%s' % token)
         if username:
-            g.current_server = Server.query.filter_by(username=username).first()
+            g.current_manager = Manager.query.filter_by(username=username).first()
             g.token = token
     else:
         phone_number = redis.get('token:%s' % token)
@@ -37,7 +37,52 @@ def index():
 def get_all_forms():
     forms = Form.query.all()
     return jsonify({'code': 1, 'forms': [form.to_json() for form in forms]})
-        
+    
+@api.route('/forms/<int:id>', methods=['GET'])
+@login_check
+def get_form(id):
+    form = Form.query.get_or_404(id)
+    if not g.current_manager and g.current_client.id != form.post_client_id: 
+        return jsonify({'code': 0, 'message': '沒有权限'})
+    return jsonify({'code': 1, 'forms': form.to_json()})
+    
+
+@api.route('/forms/<int:id>', methods=['PUT'])
+@login_check
+def edit_form(id):
+    form = Form.query.get_or_404(id)
+    if not g.current_manager and g.current_client.id != form.post_client_id: 
+        return jsonify({'code': 0, 'message': '沒有权限'})
+    edit_map = request.get_json().get('edit')
+    for key in edit_map:
+        form.__dict__[key] = edit_map[key]
+    if g.current_manager:
+        form.status = request.get_json().get('managing')
+    db.session.add(form)
+    db.session.commit(form)
+    return jsonify({'code': 1, 'message': '修改成功'})
+    
+@api.route('/admin/add_manager', methods=['POST'])
+#@login_check
+def add_manager():
+    username = request.get_json().get('username')
+    password = request.get_json().get('password')
+    email = request.get_json().get('email')
+    campus = request.get_json().get('campus')
+    
+    new_manager = Manager(username=username, password=password, email=email, campus=campus)
+    db.session.add(new_manager)
+    print username, password
+    try:
+        db.session.commit()
+    except Exception as e:
+        print e
+        db.session.rollback()
+        return jsonify({'code': 0, 'message': '昵称已注册'})
+    
+    return jsonify({'code': 1, 'message': '注册成功'})
+    
+    
 @api.route('/get-multi-qiniu-token')
 @login_check
 def get_multi_qiniu_token():

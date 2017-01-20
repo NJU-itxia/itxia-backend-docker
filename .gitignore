@@ -1,3 +1,7 @@
+db
+migrations
+redis
+
 # vim temporary files
 *~
 
