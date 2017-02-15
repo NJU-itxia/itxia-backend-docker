@@ -1,4 +1,5 @@
 # itxia-docker
+## api 文档见 https://github.com/NJU-itxia/itxia-docker/wiki
 ##安装docker以及docker-compose
 [install docker in ubuntu]
 [install docker in ubuntu]: https://docs.docker.com/v1.7/docker/installation/ubuntulinux/
