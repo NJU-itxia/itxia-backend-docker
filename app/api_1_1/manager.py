@@ -34,7 +34,7 @@ def manager_login():
     s.update(time_stamp)
     server_encryption_str = s.hexdigest()
 
-    if password_in_sql != encryption_str:#server_encryption_str != encryption_str:
+    if server_encryption_str != encryption_str:
         return jsonify({'code': 0, 'message': 'Wrong Password'})
 
     m = hashlib.md5()

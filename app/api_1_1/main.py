@@ -11,6 +11,8 @@ from .decorators import login_check
 def before_request():
     token = request.headers.get('token')
     role = request.headers.get('role')
+    g.current_manager = None
+    g.current_client = None
     print request.endpoint
     if role == 'manager':
         username = redis.get('token:%s' % token)
@@ -55,11 +57,12 @@ def edit_form(id):
         return jsonify({'code': 0, 'message': '沒有权限'})
     edit_map = request.get_json().get('edit')
     for key in edit_map:
-        form.__dict__[key] = edit_map[key]
+        if key != 'managing':
+            form.__dict__[key] = edit_map[key]
     if g.current_manager:
         form.status = request.get_json().get('managing')
     db.session.add(form)
-    db.session.commit(form)
+    db.session.commit()
     return jsonify({'code': 1, 'message': '修改成功'})
     
 @api.route('/admin/add_manager', methods=['POST'])
