@@ -1,40 +1,24 @@
-version: 2.0
+image: daocloud/ci-python:2.7
+services:
+    - mysql
+    - redis
 
-test:
-    image:
-        daocloud/ci-python:2.7
+env:
+    - REDIS_PASSWORD = "secret_password"
+    - MYSQL_INSTANCE_NAME = "apidb"
+    - MYSQL_USERNAME = "root"
+    - MYSQL_PASSWORD = "cliff522.."
 
-    services:
-        - redis
-        - mysql
+install:
+    - pip install coverage
 
-    # using default docker-link env
-    env:
-        - REDIS_PASSWORD = "secret_password"
-        - MYSQL_ROOT_PASSWORD: "cliff522.."
-        - MYSQL_DATABASE: "apidb"
-        
-    install:
-        - sudo apt-get update
+before_script:
+    - pip install -r requirements.txt
+    - python manage.py db init
+    - python manage.py db migrate -m 'new'
+    - python manage.py db upgrade
+    - python manage.py testdb 
 
-    before_script:
-        - mkdir -p /itxia
-        - mv ./* /itxia
-        - cd /itxia
-        - pip install --upgrade pip
-        - pip install -r requirements.txt
-
-    script:
-        - python manage.py runserver -h 0.0.0.0
-
-build:
-    lite_image:
-        compile:
-            dockerfile_path: Dockerfile
-            build_dir: /
-            cache: true
-            
-        package:
-              dockerfile_path: Dockerfile.sec
-              build_dir: /
-              cache: true
+script:
+    - coverage run --source='.' manage.py runserver -h 0.0.0.0
+    - coverage report
