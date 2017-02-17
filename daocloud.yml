@@ -1,39 +1,40 @@
-image: daocloud.io/imphoney/itxia
+version: 2.0
 
-services:
-  redis:
-    image: redis
-    command: redis-server --requirepass secret_password
-    volumes:
-      - ./redis:/var/lib/redis
-    ports:
-      - '6379:6379'
-      
-  db:
-    image: mysql
-    expose:
-      - "3306"
-    volumes:
-      - ./db:/var/lib/mysql
-      - ./mysql.cnf:/etc/mysql/mysql.conf.d/mysql.cnf
-    environment:
-      MYSQL_ROOT_PASSWORD: cliff522..
-      MYSQL_DATABASE: apidb
+test:
+    image:
+        daocloud/ci-python:2.7
 
-      
-  website:
-    build: .
-    command: python manage.py runserver -h 0.0.0.0
-    environment:
-      PYTHONUNBUFFERED: 'true'
-    volumes:
-      - .:/itxia
-    ports:
-      - '5000:5000'
-    links:
-      - db
-      - redis
+    services:
+        - redis
+        - mysql
 
-volumes:
-  redis:
-  db:
+    # using default docker-link env
+    env:
+        - REDIS_PASSWORD = "secret_password"
+        - MYSQL_ROOT_PASSWORD: "cliff522.."
+        - MYSQL_DATABASE: "apidb"
+        
+    install:
+        - sudo apt-get update
+
+    before_script:
+        - mkdir -p /itxia
+        - mv ./* /itxia
+        - cd /itxia
+        - pip install --upgrade pip
+        - pip install -r requirements.txt
+
+    script:
+        - python manage.py runserver -h 0.0.0.0
+
+build:
+    lite_image:
+        compile:
+            dockerfile_path: Dockerfile
+            build_dir: /
+            cache: true
+            
+        package:
+              dockerfile_path: Dockerfile.sec
+              build_dir: /
+              cache: true
