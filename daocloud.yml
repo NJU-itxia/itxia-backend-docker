@@ -4,7 +4,6 @@ services:
     - redis
 
 env:
-    - REDIS_PASSWORD = "secret_password"
     - MYSQL_INSTANCE_NAME = "apidb"
     - MYSQL_USERNAME = "root"
     - MYSQL_PASSWORD = "cliff522.."
