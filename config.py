@@ -12,7 +12,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
 
     REDIS_URL = "redis://:@redis:6379/0"
-    SQLALCHEMY_DATABASE_URI = "mysql://" + os.environ('MYSQL_USERNAME') + ":" + os.environ('MYSQL_PASSWORD')+ "@db:3306/apidb?charset=utf8"
+    SQLALCHEMY_DATABASE_URI = "mysql://" + os.environ('MYSQL_USERNAME') + ":" + os.environ('MYSQL_PASSWORD') + "@db:3306/" + os.environ('MYSQL_INSTANCE_NAME')
 
 
 class ProductionConfig(Config):
