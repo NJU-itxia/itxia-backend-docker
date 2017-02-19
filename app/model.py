@@ -8,6 +8,7 @@ class Manager(db.Model):
     __tablename__ = 'manager'
 
     id = db.Column('id', db.Integer, primary_key=True)
+    role = db.Column('role', db.String(30), nullable=False, default='itxia')
     password = db.Column('password', db.String(30), nullable=False)
     username = db.Column('username', db.String(30), index=True, unique=True, nullable=False)
     email = db.Column('email', db.String(64), index=True, unique=True, nullable = False)
@@ -15,6 +16,7 @@ class Manager(db.Model):
     avatar_picture = db.Column('avatar_picture', db.String(120), default='')
     register_time = db.Column('register_time', db.DateTime, index=True, default=datetime.now)
     handle_forms = db.relationship('Form', backref='handle_manager', lazy='dynamic', uselist=True)
+    comments = db.relationship('Comment', backref='comment_manager', lazy='dynamic', uselist=True)
     
     
     @staticmethod
@@ -35,8 +37,15 @@ class Manager(db.Model):
                 db.session.commit()
                 db.session.remove()
             except IntegrityError:
-                db.session.rollback() 
-    
+                db.session.rollback()
+                
+ 
+    def to_json(self):
+        json_post = {
+            'username': self.username,
+            'password': self.password
+        }
+        return json_post
 
 class Form(db.Model):
     __tablename__ = 'form'
@@ -132,7 +141,7 @@ class Client(db.Model):
     avatar_picture = db.Column('avatar_picture', db.String(120), default='')
     register_time = db.Column('register_time', db.DateTime, index=True, default=datetime.now)
     post_forms = db.relationship('Form', backref='post_client', lazy='dynamic', uselist=True)
-    
+    comments = db.relationship('Comment', backref='comment_client', lazy='dynamic', uselist=True)
     
     @staticmethod
     def generate_fake(count=100):
@@ -157,4 +166,30 @@ class Client(db.Model):
     @staticmethod
     def get_item(id):
         return Client.query.get(id)
+
+class Comment(db.Model):
+    __tablename__ = 'comment'
+
+    id = db.Column('id', db.Integer, primary_key=True)
+    comment_time = db.Column('comment_time', db.DateTime, default=datetime.now)
+    content = db.Column('content', db.String(500), nullable=False)
+    manager_id = db.Column('manager_id', db.Integer, db.ForeignKey('manager.id'))
+    client_id = db.Column('client_id', db.Integer, db.ForeignKey('client.id'))
+    comment_to_reply = db.Column('comment_to_reply', db.Integer, index=True)
     
+    @hybrid_property
+    def reply(self):
+        if not self.comment_to_reply:
+            return None
+        return self.comment_to_reply
+    
+    @reply.setter
+    def reply(self, comment):
+        self.comment_to_reply = comment.id
+        
+    @hybrid_property
+    def commentator(self):
+        if self.client_id:
+            return self.comment_client.phone_number
+        else:
+            return self.comment_manager.username

@@ -6,12 +6,13 @@ import hashlib
 import time
 import random
 from app.util import message_validate
-from .decorators import login_check
+from .decorators import login_check, allow_cross_domain
 from sqlalchemy import func
 from . import api
 
 
 @api.route('/client/login', methods=['POST'])
+@allow_cross_domain
 def client_login():
     phone_number = request.get_json().get('phone_number')
     encryption_str = request.get_json().get('encryption_str')
@@ -49,6 +50,7 @@ def client_login():
 
 
 @api.route('/client')
+@allow_cross_domain
 @login_check
 def client():
     client = g.current_client
@@ -57,6 +59,7 @@ def client():
 
 
 @api.route('/client/logout')
+@allow_cross_domain
 @login_check
 def client_logout():
     client = g.current_client
@@ -69,6 +72,7 @@ def client_logout():
 
 
 @api.route('/client/set-head-picture', methods=['POST'])
+@allow_cross_domain
 @login_check
 def client_set_head_picture():
     avatar_picture = request.get_json().get('avatar_picture')
@@ -85,6 +89,7 @@ def client_set_head_picture():
     
 
 @api.route('/client/register-step-1', methods=['POST'])
+@allow_cross_domain
 def register_step_1():
     """
     接受phone_number,发送短信
@@ -109,6 +114,7 @@ def register_step_1():
 
 
 @api.route('/client/register-step-2', methods=['POST'])
+@allow_cross_domain
 def register_step_2():
     """
     验证短信接口
@@ -129,6 +135,7 @@ def register_step_2():
 
 
 @api.route('/client/register-step-3', methods=['POST'])
+@allow_cross_domain
 def register_step_3():
     """
     密码提交
@@ -158,6 +165,7 @@ def register_step_3():
 
 
 @api.route('/client/register-step-4', methods=['POST'])
+@allow_cross_domain
 def register_step_4():
     """
     基本资料提交
@@ -189,6 +197,7 @@ def register_step_4():
     
 
 @api.route('/client/forms/post', methods=['POST'])
+@allow_cross_domain
 @login_check
 def form_post():
     client = g.current_client
@@ -215,6 +224,7 @@ def form_post():
     
 
 @api.route('/client/forms', methods=['GET'])
+@allow_cross_domain
 @login_check
 def client_forms():
     client = g.current_client
