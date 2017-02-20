@@ -1,3 +1,5 @@
+import os
+
 class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SECRET_KEY = 'saduhsuaihfe332r32rfo43rtn3noiYUG9jijoNF23'
@@ -10,8 +12,8 @@ class Config(object):
 class DevelopmentConfig(Config):
     DEBUG = True
 
-    REDIS_URL = "redis://:secret_password@redis:6379/0"
-    SQLALCHEMY_DATABASE_URI = "mysql://root:cliff522..@db:3306/apidb?charset=utf8"
+    REDIS_URL = "redis://:" + os.environ.get('REDIS_PASSWORD') + "@redis:6379/0"
+    SQLALCHEMY_DATABASE_URI = "mysql://" + os.environ.get('MYSQL_USERNAME') + ":" + os.environ.get('MYSQL_ROOT_PASSWORD') + "@db:3306/" + os.environ.get('MYSQL_DATABASE')
 
 
 class ProductionConfig(Config):

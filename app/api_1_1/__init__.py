@@ -3,4 +3,4 @@ from flask import Blueprint
  
 api = Blueprint('api1_1', __name__)
  
-from . import client, manager, decorators, main
+from . import client, manager, decorators, form, admin, comment, main

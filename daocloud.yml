@@ -1,0 +1,23 @@
+image: daocloud/ci-python:2.7
+services:
+    - mysql
+    - redis
+
+env:
+    - MYSQL_INSTANCE_NAME = "apidb"
+    - MYSQL_USERNAME = "root"
+    - MYSQL_PASSWORD = "cliff522.."
+
+install:
+    - pip install coverage
+
+before_script:
+    - pip install -r requirements.txt
+    - python manage.py db init
+    - python manage.py db migrate -m 'new'
+    - python manage.py db upgrade
+    - python manage.py testdb 
+
+script:
+    - coverage run --source='.' manage.py runserver -h 0.0.0.0
+    - coverage report

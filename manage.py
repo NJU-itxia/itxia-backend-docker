@@ -1,6 +1,6 @@
 # coding:utf-8
 from app import create_app, db
-from app.model import Form, Manager, Client
+from app.model import Form, Manager, Client, Comment
 from flask_script import Shell, Command, Manager as M
 from flask_migrate import Migrate, MigrateCommand
 
@@ -9,13 +9,14 @@ manager = M(app)
 migrate = Migrate(app, db)
 
 def make_shell_context():
-    return dict(app=app, db=db, Manager=Manager, Client=Client, Form=Form)
+    return dict(app=app, db=db, Manager=Manager, Client=Client, Comment = Comment, Form=Form)
     
 @manager.command    
 def testdb():
     Client.generate_fake(10) #构造虚拟用户
     Manager.generate_fake(10) #构造虚拟itxia
     Form.generate_fake(10) #构造虚拟订单
+    Comment.generate_fake(10)
 
     
                    

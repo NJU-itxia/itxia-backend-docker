@@ -6,21 +6,24 @@ import hashlib
 import time
 import random
 from app.util import message_validate
-from .decorators import login_check
+from .decorators import login_check, allow_cross_domain
 from sqlalchemy import func
 from . import api
 
 
 @api.route('/client/login', methods=['POST'])
+@allow_cross_domain
 def client_login():
-    phone_number = request.get_json().get('phone_number')
-    encryption_str = request.get_json().get('encryption_str')
-    random_str = request.get_json().get('random_str')
-    time_stamp = request.get_json().get('time_stamp')
+    if not request or not request.get_json():
+        return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
+    phone_number = request.get_json().get('phone_number') or ''
+    encryption_str = request.get_json().get('encryption_str') or ''
+    random_str = request.get_json().get('random_str') or ''
+    time_stamp = request.get_json().get('time_stamp') or ''
     client = Client.query.filter_by(phone_number=phone_number).first()
 
     if not client:
-        return jsonify({'code': 0, 'message': '没有此用户'})
+        return jsonify({'code': 0, 'message': 'No Client Exist'})
 
     password_in_sql = client.password
 
@@ -31,7 +34,7 @@ def client_login():
     server_encryption_str = s.hexdigest()
 
     if server_encryption_str != encryption_str:
-        return jsonify({'code': 0, 'message': '密码错误'})
+        return jsonify({'code': 0, 'message': 'Wrong Password'})
 
     m = hashlib.md5()
     m.update(phone_number)
@@ -45,18 +48,26 @@ def client_login():
     pipeline.expire('token:%s' % token, 3600*24*30)
     pipeline.execute()
 
-    return jsonify({'code': 1, 'message': '成功登录', 'email': client.email, 'token': token})
+    return jsonify({'code': 1, 'message': 'Log in Successfully', 'email': client.email, 'token': token})
 
 
 @api.route('/client')
+@allow_cross_domain
 @login_check
 def client():
     client = g.current_client
     email = redis.hget('client:%s' % client.phone_number, 'email')
-    return jsonify({'code': 1, 'email': email, 'phone_number': client.phone_number})
+    return jsonify({'code': 1, 'email': email, 'phone_number': client.phone_number, 'forms': [form.to_json() for form in client.post_forms]})
+    
+@api.route('/clients', methods=['GET'])
+@allow_cross_domain
+def get_clients():
+    clients = Client.query.all()
+    return jsonify({'code': 1, 'clients': [client.to_json() for client in clients]})
 
 
 @api.route('/client/logout')
+@allow_cross_domain
 @login_check
 def client_logout():
     client = g.current_client
@@ -65,10 +76,11 @@ def client_logout():
     pipeline.delete('token:%s' % g.token)
     pipeline.hmset('client:%s' % client.phone_number, {'app_online': 0})
     pipeline.execute()
-    return jsonify({'code': 1, 'message': '成功注销'})
+    return jsonify({'code': 1, 'message': 'Log Out Successfully'})
 
 
 @api.route('/client/set-head-picture', methods=['POST'])
+@allow_cross_domain
 @login_check
 def client_set_head_picture():
     avatar_picture = request.get_json().get('avatar_picture')
@@ -79,21 +91,21 @@ def client_set_head_picture():
     except Exception as e:
         print e
         db.session.rollback()
-        return jsonify({'code': 0, 'message': '未能成功上传'})
+        return jsonify({'code': 0, 'message': 'Upload Unsuccessfully'})
     redis.hset('client:%s' % client.phone_number, 'avatar_picture', avatar_picture)
-    return jsonify({'code': 1, 'message': '成功上传'})
+    return jsonify({'code': 1, 'message': 'Upload Successfully'})
     
 
 @api.route('/client/register-step-1', methods=['POST'])
+@allow_cross_domain
 def register_step_1():
-    """
-    接受phone_number,发送短信
-    """
-    phone_number = request.get_json().get('phone_number')
+    if not request or not request.get_json():
+        return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
+    phone_number = request.get_json().get('phone_number') or ''
     client = Client.query.filter_by(phone_number=phone_number).first()
 
     if client:
-        return jsonify({'code': 0, 'message': '该用户已经存在,注册失败'})
+        return jsonify({'code': 0, 'message': 'The Client Has Been Exist, Please Log In'})
     validate_number = str(random.randint(100000, 1000000))
     result, err_message = message_validate(phone_number, validate_number)
 
@@ -105,70 +117,70 @@ def register_step_1():
     pipeline.expire('validate:%s' % phone_number, 60)
     pipeline.execute()
 
-    return jsonify({'code': 1, 'message': '发送成功'})
+    return jsonify({'code': 1, 'message': 'Send Successfully'})
 
 
 @api.route('/client/register-step-2', methods=['POST'])
+@allow_cross_domain
 def register_step_2():
-    """
-    验证短信接口
-    """
-    phone_number = request.get_json().get('phone_number')
-    validate_number = request.get_json().get('validate_number')
+    if not request or not request.get_json():
+        return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
+    phone_number = request.get_json().get('phone_number') or ''
+    validate_number = request.get_json().get('validate_number') or ''
     validate_number_in_redis = redis.get('validate:%s' % phone_number)
 
     if validate_number != validate_number_in_redis:
-        return jsonify({'code': 0, 'message': '验证没有通过'})
+        return jsonify({'code': 0, 'message': 'Wrong Validate number'})
 
     pipe_line = redis.pipeline()
     pipe_line.set('is_validate:%s' % phone_number, '1')
     pipe_line.expire('is_validate:%s' % phone_number, 120)
     pipe_line.execute()
 
-    return jsonify({'code': 1, 'message': '短信验证通过'})
+    return jsonify({'code': 1, 'message': 'Validate Successfully'})
 
 
 @api.route('/client/register-step-3', methods=['POST'])
+@allow_cross_domain
 def register_step_3():
-    """
-    密码提交
-    """
-    phone_number = request.get_json().get('phone_number')
-    password = request.get_json().get('password')
-    password_confirm = request.get_json().get('password_confirm')
+    if not request or not request.get_json():
+        return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
+    phone_number = request.get_json().get('phone_number') or ''
+    password = request.get_json().get('password') or ''
+    password_confirm = request.get_json().get('password_confirm') or ''
 
     if len(password) < 7 or len(password) > 30:
         # 这边可以自己拓展条件
-        return jsonify({'code': 0, 'message': '密码长度不符合要求'})
+        return jsonify({'code': 0, 'message': 'Password Too Short Or Too Long'})
 
     if password != password_confirm:
-        return jsonify({'code': 0, 'message': '密码和密码确认不一致'})
+        return jsonify({'code': 0, 'message': 'Wrong Password confirm'})
 
     is_validate = redis.get('is_validate:%s' % phone_number)
 
     if is_validate != '1':
-        return jsonify({'code': 0, 'message': '验证码没有通过'})
+        return jsonify({'code': 0, 'message': 'Wrong Validate number'})
 
     pipeline = redis.pipeline()
     pipeline.hset('register:%s' % phone_number, 'password', password)
     pipeline.expire('register:%s' % phone_number, 120)
     pipeline.execute()
 
-    return jsonify({'code': 1, 'message': '提交密码成功'})
+    return jsonify({'code': 1, 'message': 'Submit Password Successfully'})
 
 
 @api.route('/client/register-step-4', methods=['POST'])
+@allow_cross_domain
 def register_step_4():
-    """
-    基本资料提交
-    """
-    phone_number = request.get_json().get('phone_number')
-    email = request.get_json().get('email')
+    if not request or not request.get_json():
+        return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
+    phone_number = request.get_json().get('phone_number') or ''
+    email = request.get_json().get('email') or ''
 
     is_validate = redis.get('is_validate:%s' % phone_number)
 
     if is_validate != '1':
-        return jsonify({'code': 0, 'message': '验证码没有通过'})
+        return jsonify({'code': 0, 'message': 'Wrong Validate number'})
 
     password = redis.hget('register:%s' % phone_number, 'password')
 
@@ -180,23 +192,26 @@ def register_step_4():
     except Exception as e:
         print e
         db.session.rollback()
-        return jsonify({'code': 0, 'message': '注册失败, 邮箱已注册'})
+        return jsonify({'code': 0, 'message': 'The Mail Has Been Registered'})
     finally:
         redis.delete('is_validate:%s' % phone_number)
         redis.delete('register:%s' % phone_number)
 
-    return jsonify({'code': 1, 'message': '注册成功'})
+    return jsonify({'code': 1, 'message': 'Register Successfully'})
     
 
 @api.route('/client/forms/post', methods=['POST'])
+@allow_cross_domain
 @login_check
 def form_post():
+    if not request or not request.get_json():
+        return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
     client = g.current_client
-    campus = request.get_json().get('campus')
-    machine_model = request.get_json().get('machine_model')
-    OS = request.get_json().get('OS')
-    description = request.get_json().get('description')
-    pictures = request.get_json().get('pictures')
+    campus = request.get_json().get('campus') or ''
+    machine_model = request.get_json().get('machine_model') or ''
+    OS = request.get_json().get('OS') or ''
+    description = request.get_json().get('description') or ''
+    pictures = request.get_json().get('pictures') or ''
     
     new_form = Form(campus=campus,
                         machine_model=machine_model,
@@ -210,11 +225,12 @@ def form_post():
     except Exception as e:
         print e
         db.session.rollback()
-        return jsonify({'code': 0, 'message': '提交不成功'})
-    return jsonify({'code': 1, 'message': '提交成功'})
+        return jsonify({'code': 0, 'message': 'Submit Unsuccessfully'})
+    return jsonify({'code': 1, 'message': 'Submit Successfully'})
     
 
 @api.route('/client/forms', methods=['GET'])
+@allow_cross_domain
 @login_check
 def client_forms():
     client = g.current_client
