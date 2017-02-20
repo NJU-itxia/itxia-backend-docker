@@ -8,9 +8,8 @@ def allow_cross_domain(fun):
     def wrapper_fun(*args, **kwargs):
         rst = make_response(fun(*args, **kwargs))
         rst.headers['Access-Control-Allow-Origin'] = '*'
-        rst.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE'
-        allow_headers = "Referer, Accept, Origin, User-Agent, Token, Role"
-        rst.headers['Access-Control-Allow-Headers'] = allow_headers
+        rst.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, OPTIONS, DELETE'
+        rst.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, X-ID, X-TOKEN, X-Role'
         return rst
     return wrapper_fun
 

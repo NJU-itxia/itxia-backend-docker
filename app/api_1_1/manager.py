@@ -1,5 +1,5 @@
 # coding:utf-8
-from flask import request, jsonify, g, url_for, current_app, json
+from flask import request, jsonify, g, url_for, current_app, json, Response
 from app.model import Client, Manager, Form
 from .. import db, redis
 import hashlib
@@ -18,9 +18,11 @@ def get_all_managers():
     return jsonify({'code': 1, 'managers': [manager.to_json() for manager in managers]})
     
      
-@api.route('/manager/login', methods=['POST'])
+@api.route('/manager/login', methods=['POST', 'OPTIONS'])
 @allow_cross_domain
 def manager_login():
+    if request.method == 'OPTIONS':
+   	return Response(mimetype='application/json')
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
     username = request.get_json().get('username') or ''
