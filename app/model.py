@@ -1,6 +1,6 @@
 from datetime import datetime
 from . import db
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method, hybrid_method
 from flask import url_for
 import random
 
@@ -60,6 +60,7 @@ class Form(db.Model):
     picture_content = db.Column('picture_content', db.String(900))
     handle_manager_id = db.Column('handle_manager_id', db.Integer, db.ForeignKey('manager.id'))
     post_client_id = db.Column('post_client_id', db.Integer, db.ForeignKey('client.id'))
+    comments = db.relationship('Comment', backref='form_to_comment', lazy='dynamic', uselist=True)
     
     
     @hybrid_property
@@ -103,21 +104,29 @@ class Form(db.Model):
                      OS=forgery_py.lorem_ipsum.word(),
                      post_client=c,
                      handle_manager=m)
-            f.state = ['working', 'done'][random.randint(0,1)],
+            f.state = ['working', 'done'][random.randint(0,1)]
             db.session.add(f)
-            db.session.commit()  
+            try:
+                db.session.commit()
+                db.session.remove()
+            except IntegrityError:
+                db.session.rollback()
 
         
     def to_json(self):
         handle_manager_username = None
         post_client_phone_number = None
+        comments_of_post = None
         if self.post_client:
             post_client_phone_number = self.post_client.phone_number
         if self.handle_manager:
             handle_manager_username = self.handle_manager.username
+        if self.comments:
+            comments_of_post = [comment.to_json() for comment in self.comments]
             
         json_post = {
             'url': url_for('api1_1.get_form', id=self.id, _external=True),
+            'comments': comments_of_post,
             'post_client_phone_number': post_client_phone_number,
             'handle_manager_username': handle_manager_username,
             'campus': self.campus,
@@ -175,6 +184,7 @@ class Comment(db.Model):
     content = db.Column('content', db.String(500), nullable=False)
     manager_id = db.Column('manager_id', db.Integer, db.ForeignKey('manager.id'))
     client_id = db.Column('client_id', db.Integer, db.ForeignKey('client.id'))
+    form_id = db.Column('form_id', db.Integer, db.ForeignKey('form.id'))
     comment_to_reply = db.Column('comment_to_reply', db.Integer, index=True)
     
     @hybrid_property
@@ -190,6 +200,68 @@ class Comment(db.Model):
     @hybrid_property
     def commentator(self):
         if self.client_id:
-            return self.comment_client.phone_number
-        else:
-            return self.comment_manager.username
+            return {'client': self.comment_client.phone_number}
+        elif self.manager_id:
+            return {'manager': self.comment_manager.username}
+            
+    @commentator.setter
+    def commentator(self, people):
+        if people.__class__ == Client:
+            self.comment_client = people
+        if people.__class__ == Manager:
+            self.comment_manager = people
+            
+    @staticmethod
+    def generate_fake(count=100):
+        from random import seed, randint
+        import forgery_py
+
+        seed()
+        client_count = Client.query.count()
+        manager_count = Manager.query.count()
+        form_count = Form.query.count()
+        for i in range(count):
+            c = Client.query.offset(randint(0, client_count - 1)).first()
+            m = Manager.query.offset(randint(0, manager_count - 1)).first()
+            f = Form.query.offset(randint(0, form_count - 1)).first()
+            comment = Comment(content=forgery_py.lorem_ipsum.words(10),
+                     comment_time=forgery_py.date.date(True),
+                     form_to_comment=f)
+            comment.commentator = [c, m][random.randint(0,1)]
+            db.session.add(comment) 
+            try:
+                db.session.commit()
+                db.session.remove()
+            except IntegrityError:
+                db.session.rollback() 
+        
+        comment_count = comment.query.count()
+        for i in range(count):
+            reply = comment.query.offset(randint(0, comment_count - 1)).first()
+            c = Client.query.offset(randint(0, client_count - 1)).first()
+            m = Manager.query.offset(randint(0, manager_count - 1)).first()
+            f = Form.query.offset(randint(0, form_count - 1)).first()
+            comment = Comment(content=forgery_py.lorem_ipsum.words(10),
+                     comment_time=forgery_py.date.date(True),
+                     form_to_comment=f)
+            comment.reply = reply
+            db.session.add(comment) 
+            try:
+                db.session.commit()
+                db.session.remove()
+            except IntegrityError:
+                db.session.rollback() 
+            
+    def to_json(self):
+        reply = None
+        if self.reply:
+            reply = url_for('api1_1.get_comment', id=self.reply, _external=True)
+        json_comment = {
+            'url': url_for('api1_1.get_comment', id=self.id, _external=True),
+            'reply': reply,
+            'content': self.content,
+            'comment_time': self.comment_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'commentator': self.commentator
+            }
+            
+        return json_comment

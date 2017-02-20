@@ -10,7 +10,14 @@ from .decorators import login_check, manager_check, allow_cross_domain
 from sqlalchemy import func
 from . import api
     
+
+@api.route('/managers', methods=['GET'])
+@allow_cross_domain
+def get_all_managers():
+    managers = Manager.query.all()
+    return jsonify({'code': 1, 'managers': [manager.to_json() for manager in managers]})
     
+     
 @api.route('/manager/login', methods=['POST'])
 @allow_cross_domain
 def manager_login():
