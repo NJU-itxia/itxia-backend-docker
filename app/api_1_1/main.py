@@ -9,8 +9,8 @@ from .decorators import login_check, admin_check, superadmin_check, allow_cross_
 
 @api.before_request
 def before_request():
-    token = request.headers.get('token') 
-    role = request.headers.get('role')
+    token = request.headers.get('Token') 
+    role = request.headers.get('Role')
     g.current_manager = None
     g.current_client = None
     print request.endpoint

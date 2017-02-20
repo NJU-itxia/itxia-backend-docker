@@ -175,7 +175,16 @@ class Client(db.Model):
     @staticmethod
     def get_item(id):
         return Client.query.get(id)
-
+        
+    def to_json(self):
+        json_client = {
+            'phone_number': self.phone_number,
+            'password': self.password
+        }
+        
+        return json_client
+        
+        
 class Comment(db.Model):
     __tablename__ = 'comment'
 
@@ -253,12 +262,12 @@ class Comment(db.Model):
                 db.session.rollback() 
             
     def to_json(self):
-        reply = None
+        reply_url = None
         if self.reply:
-            reply = url_for('api1_1.get_comment', id=self.reply, _external=True)
+            reply_url = url_for('api1_1.get_comment', id=self.reply, _external=True)
         json_comment = {
             'url': url_for('api1_1.get_comment', id=self.id, _external=True),
-            'reply': reply,
+            'reply_url': reply_url,
             'content': self.content,
             'comment_time': self.comment_time.strftime('%Y-%m-%d %H:%M:%S'),
             'commentator': self.commentator

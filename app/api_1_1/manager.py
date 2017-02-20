@@ -21,6 +21,8 @@ def get_all_managers():
 @api.route('/manager/login', methods=['POST'])
 @allow_cross_domain
 def manager_login():
+    if not request or not request.get_json():
+        return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
     username = request.get_json().get('username') or ''
     encryption_str = request.get_json().get('encryption_str') or ''
     random_str = request.get_json().get('random_str') or ''
@@ -53,7 +55,7 @@ def manager_login():
     pipeline.expire('token:%s' % token, 3600*24*30)
     pipeline.execute()
 
-    return jsonify({'code': 1, 'message': 'Successful Log In', 'email': manager.email, 'token': token})
+    return jsonify({'code': 1, 'message': 'Log In Successfully', 'email': manager.email, 'token': token})
     
 @api.route('/manager')
 @allow_cross_domain
@@ -62,7 +64,7 @@ def manager_login():
 def manager():
     manager = g.current_manager
     email = redis.hget('manager:%s' % manager.username, 'email')
-    return jsonify({'code': 1, 'email': email, 'username': manager.username})
+    return jsonify({'code': 1, 'email': email, 'username': manager.username,'forms': [form.to_json() for form in manager.handle_forms], 'comment': [comment.to_json() for comment in manager.comments]})
 
 
 @api.route('/manager/logout')
@@ -76,7 +78,7 @@ def manager_logout():
     pipeline.delete('token:%s' % g.token)
     pipeline.hmset('manager:%s' % manager.username, {'app_online': 0})
     pipeline.execute()
-    return jsonify({'code': 1, 'message': 'Successful Log Out'})
+    return jsonify({'code': 1, 'message': 'Log Out Successfully '})
 
 
 @api.route('/manager/set-head-picture', methods=['POST'])
@@ -92,9 +94,9 @@ def manager_set_head_picture():
     except Exception as e:
         print e
         db.session.rollback()
-        return jsonify({'code': 0, 'message': '未能成功上传'})
+        return jsonify({'code': 0, 'message': 'Upload Unsuccessfully'})
     redis.hset('manager:%s' % manager.username, 'avatar_picture', avatar_picture)
-    return jsonify({'code': 1, 'message': '成功上传'})
+    return jsonify({'code': 1, 'message': 'Upload Successful'})
     
 @api.route('/manager/waiting_forms', methods=['GET'])
 @allow_cross_domain
