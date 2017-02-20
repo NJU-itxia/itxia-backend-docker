@@ -1,25 +1,32 @@
 # coding:utf-8
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, make_response, g
 from .. import redis
 from functools import wraps
 
+def allow_cross_domain(fun):
+    @wraps(fun)
+    def wrapper_fun(*args, **kwargs):
+        rst = make_response(fun(*args, **kwargs))
+        rst.headers['Access-Control-Allow-Origin'] = '*'
+        rst.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, OPTIONS, DELETE'
+        rst.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, X-ID, X-TOKEN, X-Role'
+        return rst
+    return wrapper_fun
 
 def login_check(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-        token = request.headers.get('token')
-        role = request.headers.get('role')
-        if not token:
-            return jsonify({'code': 0, 'message': 'Validation Needed'})
+        if not g.token:
+            return jsonify({'code': 0, 'message': 'Validation Needed'}), 401
         
-        if role == 'manager':
-            username = redis.get('token:%s' % token)
+        if g.role.has_key('manager'):
+            username = redis.get('token:%s' % g.token)
             if not username or token != redis.hget('manager:%s' % username, 'token'):
-                return jsonify({'code': 2, 'message': 'Wrong Validation for manager'})
+                return jsonify({'code': 2, 'message': 'Wrong Validation'}), 401
         else:
-            phone_number = redis.get('token:%s' % token)
-            if not phone_number or token != redis.hget('client:%s' % phone_number, 'token'):
-                return jsonify({'code': 2, 'message': 'Wrong Validation'})
+            phone_number = redis.get('token:%s' % g.token)
+            if not phone_number or g.token != redis.hget('client:%s' % phone_number, 'token'):
+                return jsonify({'code': 2, 'message': 'Wrong Validation'}), 401
 
         return f(*args, **kwargs)
     return decorator
@@ -27,8 +34,23 @@ def login_check(f):
 def manager_check(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-        role = request.headers.get('role')
-        if role != 'manager':
-            return jsonify({'code': 0, 'message': 'No Permission'})
+        if not g.role.has_key('manager'):
+            return jsonify({'code': 0, 'message': 'No Permission'}), 401
+        return f(*args, **kwargs)
+    return decorator
+    
+def admin_check(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        if g.role['manager'] != 'admin':
+            return jsonify({'code': 0, 'message': 'No Permission'}), 401
+        return f(*args, **kwargs)
+    return decorator
+    
+def superadmin_check(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        if g.role['manager'] != 'superadmin':
+            return jsonify({'code': 0, 'message': 'No Permission'}), 401
         return f(*args, **kwargs)
     return decorator

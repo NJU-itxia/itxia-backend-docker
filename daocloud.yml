@@ -1,41 +1,23 @@
-version: '2'
-
-image: daocloud.io/imphoney/itxia
-
+image: daocloud/ci-python:2.7
 services:
-  redis:
-    image: redis
-    command: redis-server --requirepass secret_password
-    volumes:
-      - ./redis:/var/lib/redis
-    ports:
-      - '6379:6379'
-      
-  db:
-    image: mysql
-    expose:
-      - "3306"
-    volumes:
-      - ./db:/var/lib/mysql
-      - ./mysql.cnf:/etc/mysql/mysql.conf.d/mysql.cnf
-    environment:
-      MYSQL_ROOT_PASSWORD: cliff522..
-      MYSQL_DATABASE: apidb
+    - mysql
+    - redis
 
-      
-  website:
-    build: .
-    command: python manage.py runserver -h 0.0.0.0
-    environment:
-      PYTHONUNBUFFERED: 'true'
-    volumes:
-      - .:/itxia
-    ports:
-      - '5000:5000'
-    links:
-      - db
-      - redis
+env:
+    - MYSQL_INSTANCE_NAME = "apidb"
+    - MYSQL_USERNAME = "root"
+    - MYSQL_PASSWORD = "cliff522.."
 
-volumes:
-  redis:
-  db:
+install:
+    - pip install coverage
+
+before_script:
+    - pip install -r requirements.txt
+    - python manage.py db init
+    - python manage.py db migrate -m 'new'
+    - python manage.py db upgrade
+    - python manage.py testdb 
+
+script:
+    - coverage run --source='.' manage.py runserver -h 0.0.0.0
+    - coverage report
