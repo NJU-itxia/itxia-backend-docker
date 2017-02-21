@@ -2,17 +2,17 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_redis import FlaskRedis
+from flask_cors import CORS, cross_origin
 from config import config
 from qiniu import Auth
 
-
-app = Flask(__name__)
 
 db = SQLAlchemy()
 redis = FlaskRedis()
 
 def create_app(config_name='default'):
     app = Flask(__name__)
+    CORS(app)
     app.config.from_object(config[config_name])
     app.q = Auth(access_key=app.config['QINIU_ACCESS_KEY'], secret_key=app.config['QINIU_SECRET_KEY'])
     app.bucket_name = app.config['BUCKET_NAME']
