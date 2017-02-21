@@ -6,7 +6,7 @@ import hashlib
 import time
 import random
 from app.util import message_validate
-from .decorators import login_check, allow_cross_domain
+from .decorators import login_check
 from sqlalchemy import func
 from . import api
 
