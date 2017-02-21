@@ -12,7 +12,6 @@ from . import api
 
 
 @api.route('/client/login', methods=['POST'])
-@allow_cross_domain
 def client_login():
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
@@ -52,7 +51,6 @@ def client_login():
 
 
 @api.route('/client')
-@allow_cross_domain
 @login_check
 def client():
     client = g.current_client
@@ -60,14 +58,12 @@ def client():
     return jsonify({'code': 1, 'email': email, 'phone_number': client.phone_number, 'forms': [form.to_json() for form in client.post_forms]})
     
 @api.route('/clients', methods=['GET'])
-@allow_cross_domain
 def get_clients():
     clients = Client.query.all()
     return jsonify({'code': 1, 'clients': [client.to_json() for client in clients]})
 
 
 @api.route('/client/logout')
-@allow_cross_domain
 @login_check
 def client_logout():
     client = g.current_client
@@ -80,7 +76,6 @@ def client_logout():
 
 
 @api.route('/client/set-head-picture', methods=['POST'])
-@allow_cross_domain
 @login_check
 def client_set_head_picture():
     avatar_picture = request.get_json().get('avatar_picture')
@@ -97,7 +92,6 @@ def client_set_head_picture():
     
 
 @api.route('/client/register-step-1', methods=['POST'])
-@allow_cross_domain
 def register_step_1():
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
@@ -121,7 +115,6 @@ def register_step_1():
 
 
 @api.route('/client/register-step-2', methods=['POST'])
-@allow_cross_domain
 def register_step_2():
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
@@ -141,7 +134,6 @@ def register_step_2():
 
 
 @api.route('/client/register-step-3', methods=['POST'])
-@allow_cross_domain
 def register_step_3():
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
@@ -170,7 +162,6 @@ def register_step_3():
 
 
 @api.route('/client/register-step-4', methods=['POST'])
-@allow_cross_domain
 def register_step_4():
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
@@ -201,7 +192,6 @@ def register_step_4():
     
 
 @api.route('/client/forms/post', methods=['POST'])
-@allow_cross_domain
 @login_check
 def form_post():
     if not request or not request.get_json():
@@ -230,7 +220,6 @@ def form_post():
     
 
 @api.route('/client/forms', methods=['GET'])
-@allow_cross_domain
 @login_check
 def client_forms():
     client = g.current_client
