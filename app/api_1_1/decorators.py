@@ -3,15 +3,6 @@ from flask import request, jsonify, current_app, make_response, g
 from .. import redis
 from functools import wraps
 
-def allow_cross_domain(fun):
-    @wraps(fun)
-    def wrapper_fun(*args, **kwargs):
-        rst = make_response(fun(*args, **kwargs))
-        rst.headers['Access-Control-Allow-Origin'] = '*'
-        rst.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, OPTIONS, DELETE'
-        rst.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, X-ID, X-TOKEN, X-Role'
-        return rst
-    return wrapper_fun
 
 def login_check(f):
     @wraps(f)
