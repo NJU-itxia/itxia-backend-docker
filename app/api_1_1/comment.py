@@ -5,7 +5,7 @@ from .. import db, redis
 import uuid
 
 from . import api
-from .decorators import login_check, admin_check, superadmin_check, allow_cross_domain
+from .decorators import login_check, admin_check, superadmin_check
 
 @api.route('/comments/<int:id>', methods=['GET'])
 @login_check
