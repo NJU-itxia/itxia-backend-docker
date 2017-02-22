@@ -17,7 +17,7 @@ def get_all_managers():
     return jsonify({'code': 1, 'managers': [manager.to_json() for manager in managers]})
     
      
-@api.route('/manager/login', methods=['POST', 'OPTIONS'])
+@api.route('/manager/login', methods=['POST'])
 def manager_login():
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
@@ -61,7 +61,7 @@ def manager_login():
 def manager():
     manager = g.current_manager
     email = redis.hget('manager:%s' % manager.username, 'email')
-    return jsonify({'code': 1, 'email': email, 'username': manager.username,'forms': [form.to_json() for form in manager.handle_forms], 'comment': [comment.to_json() for comment in manager.comments]})
+    return jsonify({'code': 1, 'email': email, 'username': manager.username, 'campus': manager.campus, 'forms': [form.to_json() for form in manager.handle_forms], 'comment': [comment.to_json() for comment in manager.comments]})
 
 
 @api.route('/manager/logout')

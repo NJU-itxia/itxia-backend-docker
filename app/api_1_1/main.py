@@ -14,7 +14,7 @@ def before_request():
     g.current_manager = None
     g.current_client = None
     g.token = None
-    print request.endpoint
+    print request.path.split('/')[3]
     if role == 'manager':
         username = redis.get('token:%s' % token)
         if username:

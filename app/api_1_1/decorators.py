@@ -12,7 +12,7 @@ def login_check(f):
         
         if g.role.has_key('manager'):
             username = redis.get('token:%s' % g.token)
-            if not username or token != redis.hget('manager:%s' % username, 'token'):
+            if not username or g.token != redis.hget('manager:%s' % username, 'token'):
                 return jsonify({'code': 2, 'message': 'Wrong Validation'}), 401
         else:
             phone_number = redis.get('token:%s' % g.token)
