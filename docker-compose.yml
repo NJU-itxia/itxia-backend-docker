@@ -23,10 +23,19 @@ services:
       MYSQL_ROOT_PASSWORD: cliff522..
       MYSQL_DATABASE: apidb
 
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/src
+      - ./config/nginx:/etc/nginx/conf.d
+    depends_on:
+      - web
       
-  website:
+  web:
     build: .
-    command: python manage.py runserver -h 0.0.0.0
+    command: python manage.py runserver -h 0.0.0.0 -p 80
     environment:
       PYTHONUNBUFFERED: 'true'
       REDIS_PASSWORD: secret_password
@@ -34,9 +43,12 @@ services:
       MYSQL_ROOT_PASSWORD: cliff522..
       MYSQL_DATABASE: apidb
     volumes:
-      - .:/itxia
-    ports:
-      - '5000:5000'
+      - ./src:/src
+    expose:
+      - "80"
+    depends_on:
+      - db
+      - redis
     links:
       - db
       - redis
