@@ -5,10 +5,9 @@ from .. import db, redis
 import uuid
 
 from . import api
-from .decorators import login_check, admin_check, superadmin_check, allow_cross_domain
+from .decorators import login_check, admin_check, superadmin_check
 
 @api.route('/comments/<int:id>', methods=['GET'])
-@allow_cross_domain
 @login_check
 def get_comment(id):
     comment = Comment.query.get_or_404(id)
@@ -17,7 +16,6 @@ def get_comment(id):
     return jsonify({'code': 1, 'comment': comment.to_json()})
 
 @api.route('/comments', methods=['POST'])
-@allow_cross_domain
 @login_check
 def edit_comment(id):
     comment = Comment.query.get_or_404(id)
@@ -52,7 +50,6 @@ def edit_comment(id):
         
 
 @api.route('/comments', methods=['GET'])
-@allow_cross_domain
 def get_comments():
     comments = Comment.query.all()
     return jsonify({'code': 1, 'comments': [comment.to_json() for comment in comments]})

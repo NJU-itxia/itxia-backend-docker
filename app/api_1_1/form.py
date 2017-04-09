@@ -4,17 +4,14 @@ from app.model import Client, Manager, Form
 from .. import db, redis
 
 from . import api
-from .decorators import login_check, allow_cross_domain
-
+from .decorators import login_check
 
 @api.route('/forms', methods=['GET'])
-@allow_cross_domain
 def get_forms():
     forms = Form.query.all()
     return jsonify({'code': 1, 'forms': [form.to_json() for form in forms]})
     
 @api.route('/forms/<int:id>', methods=['GET'])
-@allow_cross_domain
 @login_check
 def get_form(id):
     form = Form.query.get_or_404(id)
@@ -23,7 +20,6 @@ def get_form(id):
     return jsonify({'code': 1, 'forms': form.to_json()})
     
 @api.route('/forms/<int:id>', methods=['PUT'])
-@allow_cross_domain
 @login_check
 def edit_form(id):
     form = Form.query.get_or_404(id)

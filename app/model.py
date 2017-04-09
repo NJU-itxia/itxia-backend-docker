@@ -43,7 +43,10 @@ class Manager(db.Model):
     def to_json(self):
         json_post = {
             'username': self.username,
-            'password': self.password
+            'password': self.password,
+            'role': self.role,
+            'email': self.email,
+            'campus': self.campus
         }
         return json_post
 

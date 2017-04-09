@@ -5,7 +5,7 @@ from .. import db, redis
 import uuid
 
 from . import api
-from .decorators import login_check, admin_check, superadmin_check, allow_cross_domain
+from .decorators import login_check, admin_check, superadmin_check
 
 @api.before_request
 def before_request():
@@ -13,7 +13,8 @@ def before_request():
     role = request.headers.get('Role')
     g.current_manager = None
     g.current_client = None
-    print request.endpoint
+    g.token = None
+    print request.path.split('/')[3]
     if role == 'manager':
         username = redis.get('token:%s' % token)
         if username:
@@ -34,12 +35,10 @@ def handle_teardown_request(exception):
     db.session.remove()
 
 @api.route('/')
-@allow_cross_domain
 def index():
     return 'hello'
 
 @api.route('/get-multi-qiniu-token')
-@allow_cross_domain
 @login_check
 def get_multi_qiniu_token():
     count = int(request.args.get('count'))
@@ -56,7 +55,6 @@ def get_multi_qiniu_token():
  
     
 @api.route('/get-qiniu-token')
-@allow_cross_domain
 @login_check
 def get_qiniu_token():
     key = uuid.uuid4()

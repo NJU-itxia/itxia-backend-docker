@@ -4,10 +4,9 @@ from app.model import Client, Manager, Form
 from .. import db, redis
 
 from . import api
-from .decorators import login_check, admin_check, superadmin_check, allow_cross_domain
+from .decorators import login_check, admin_check, superadmin_check
 
 @api.route('/admin/add_manager', methods=['POST'])
-@allow_cross_domain
 @login_check
 @admin_check
 def add_manager():
@@ -29,7 +28,6 @@ def add_manager():
     return jsonify({'code': 1, 'message': 'Register Successfully'})
 
 @api.route('/admin/uplevel_manager', methods=['PUT'])
-@allow_cross_domain
 @login_check
 @admin_check
 def uplevel_manager():
@@ -43,7 +41,6 @@ def uplevel_manager():
     return jsonify({'code': 1, 'message': 'Uplevel Successfully'}) 
 
 @api.route('/admin/modify_manager', methods=['PUT'])
-@allow_cross_domain
 @login_check
 @superadmin_check
 def modify_manager():

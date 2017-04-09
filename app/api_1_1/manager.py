@@ -6,23 +6,19 @@ import hashlib
 import time
 import random
 from app.util import message_validate
-from .decorators import login_check, manager_check, allow_cross_domain
+from .decorators import login_check, manager_check
 from sqlalchemy import func
 from . import api
     
 
 @api.route('/managers', methods=['GET'])
-@allow_cross_domain
 def get_all_managers():
     managers = Manager.query.all()
     return jsonify({'code': 1, 'managers': [manager.to_json() for manager in managers]})
     
      
-@api.route('/manager/login', methods=['POST', 'OPTIONS'])
-@allow_cross_domain
+@api.route('/manager/login', methods=['POST'])
 def manager_login():
-    if request.method == 'OPTIONS':
-   	return Response(mimetype='application/json')
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
     username = request.get_json().get('username') or ''
@@ -60,17 +56,15 @@ def manager_login():
     return jsonify({'code': 1, 'message': 'Log In Successfully', 'email': manager.email, 'token': token})
     
 @api.route('/manager')
-@allow_cross_domain
 @login_check
 @manager_check
 def manager():
     manager = g.current_manager
     email = redis.hget('manager:%s' % manager.username, 'email')
-    return jsonify({'code': 1, 'email': email, 'username': manager.username,'forms': [form.to_json() for form in manager.handle_forms], 'comment': [comment.to_json() for comment in manager.comments]})
+    return jsonify({'code': 1, 'email': email, 'username': manager.username, 'campus': manager.campus, 'forms': [form.to_json() for form in manager.handle_forms], 'comment': [comment.to_json() for comment in manager.comments]})
 
 
 @api.route('/manager/logout')
-@allow_cross_domain
 @login_check
 @manager_check
 def manager_logout():
@@ -84,7 +78,6 @@ def manager_logout():
 
 
 @api.route('/manager/set-head-picture', methods=['POST'])
-@allow_cross_domain
 @login_check
 @manager_check
 def manager_set_head_picture():
@@ -101,7 +94,6 @@ def manager_set_head_picture():
     return jsonify({'code': 1, 'message': 'Upload Successful'})
     
 @api.route('/manager/waiting_forms', methods=['GET'])
-@allow_cross_domain
 @login_check
 @manager_check
 def get_waiting_forms():
@@ -130,7 +122,6 @@ def get_waiting_forms():
         
         
 @api.route('/manager/working_forms', methods=['GET'])
-@allow_cross_domain
 @login_check
 @manager_check
 def get_working_forms():
@@ -158,7 +149,6 @@ def get_working_forms():
         })
     
 @api.route('/manager/done_forms', methods=['GET'])
-@allow_cross_domain
 @login_check
 @manager_check
 def get_done_forms():
@@ -186,7 +176,6 @@ def get_done_forms():
         })
         
 @api.route('/manager/all_forms', methods=['GET'])
-@allow_cross_domain
 @login_check
 @manager_check
 def get_all_forms():
