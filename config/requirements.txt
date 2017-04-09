@@ -1,0 +1,9 @@
+flask
+flask-script
+flask-migrate
+flask-redis
+flask-sqlalchemy
+flask-cors
+qiniu
+mysql-python
+forgerypy
