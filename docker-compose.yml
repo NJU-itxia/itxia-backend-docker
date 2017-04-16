@@ -17,7 +17,7 @@ services:
       - "3306"
     volumes:
       - ./db:/var/lib/mysql
-      - ./mysql.cnf:/etc/mysql/mysql.conf.d/mysql.cnf
+      - ./config/mysql.cnf:/etc/mysql/mysql.conf.d/mysql.cnf
     environment:
       MYSQL_USERNAME: root
       MYSQL_ROOT_PASSWORD: cliff522..
@@ -35,7 +35,7 @@ services:
       
   web:
     build: .
-    command: python manage.py runserver -h 0.0.0.0 -p 80
+    command: bash -c "python manage.py db init && python manage.py db migrate -m 'v1_1' && python manage.py db upgrade && python manage.py testdb && gunicorn wsgi:application -b 0.0.0.0:80 || gunicorn wsgi:application -b 0.0.0.0:80"
     environment:
       PYTHONUNBUFFERED: 'true'
       REDIS_PASSWORD: secret_password

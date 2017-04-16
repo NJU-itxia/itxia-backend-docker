@@ -5,7 +5,7 @@ from .. import db, redis
 import uuid
 
 from . import api
-from .decorators import login_check, admin_check, superadmin_check
+from .decorators import login_check, manager_check, admin_check, superadmin_check
 
 @api.route('/comments/<int:id>', methods=['GET'])
 @login_check
@@ -17,8 +17,7 @@ def get_comment(id):
 
 @api.route('/comments', methods=['POST'])
 @login_check
-def edit_comment(id):
-    comment = Comment.query.get_or_404(id)
+def edit_comment():
     if not g.current_manager and g.current_client.id != comment.client_id: 
         return jsonify({'code': 0, 'message': 'No Permission'})
         
@@ -29,17 +28,18 @@ def edit_comment(id):
     reply_url = request.get_json().get('reply') or ''
     
     form_id = form_url.split('/')[-1]
-    reply_id = comment_url.split('/')[-1]
+    reply_id = reply_url.split('/')[-1]
+    reply_comment = Comment.query.get_or_404(reply_id)
     f = Form.query.filter_by(id=form_id).first()
     comment = Comment(content=content,
                      form_to_comment=f)
-    comment.reply = reply_id
+    comment.reply = reply_comment
     if g.current_manager:
         comment.commentator = g.current_manager
     if g.current_client:
         comment.commentator = g.current_client
     
-    db.session.add(comment)   
+    db.session.add(comment)
     try:
         db.session.commit()
     except Exception as e:
@@ -52,4 +52,11 @@ def edit_comment(id):
 @api.route('/comments', methods=['GET'])
 def get_comments():
     comments = Comment.query.all()
+    return jsonify({'code': 1, 'comments': [comment.to_json() for comment in comments]})
+
+@api.route('/comments/latest', methods=['GET'])
+@login_check
+@manager_check
+def get_latest_comments():
+    comments = Comment.query.order_by(Comment.comment_time).limit(10).all()
     return jsonify({'code': 1, 'comments': [comment.to_json() for comment in comments]})

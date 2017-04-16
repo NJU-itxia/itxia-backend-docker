@@ -4,6 +4,7 @@ flask-migrate
 flask-redis
 flask-sqlalchemy
 flask-cors
+gunicorn
 qiniu
 mysql-python
 forgerypy

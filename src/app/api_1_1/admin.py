@@ -14,7 +14,7 @@ def add_manager():
     password = request.get_json().get('password') or ''
     email = request.get_json().get('email') or ''
     campus = request.get_json().get('campus') or ''
-    
+
     new_manager = Manager(username=username, password=password, email=email, campus=campus)
     db.session.add(new_manager)
     print username, password
@@ -24,7 +24,7 @@ def add_manager():
         print e
         db.session.rollback()
         return jsonify({'code': 0, 'message': 'Nickname had been registered'}), 403
-    
+
     return jsonify({'code': 1, 'message': 'Register Successfully'})
 
 @api.route('/admin/uplevel_manager', methods=['PUT'])
@@ -37,7 +37,7 @@ def uplevel_manager():
         manager.role = 'admin'
     else:
         return jsonify({'code': 0, 'message': 'No such manager'})
-    
+
     return jsonify({'code': 1, 'message': 'Uplevel Successfully'}) 
 
 @api.route('/admin/modify_manager', methods=['PUT'])
@@ -56,5 +56,5 @@ def modify_manager():
                 return jsonify({'code': 0, 'message': 'Requst Format Wrong'}), 403
     else:
         return jsonify({'code': 0, 'message': 'No such manager'})
-    
-    return jsonify({'code': 1, 'message': 'Modified Successfully'}) 
+
+    return jsonify({'code': 1, 'message': 'Modified Successfully'})

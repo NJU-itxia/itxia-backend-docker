@@ -14,7 +14,6 @@ def before_request():
     g.current_manager = None
     g.current_client = None
     g.token = None
-    print request.path.split('/')[3]
     if role == 'manager':
         username = redis.get('token:%s' % token)
         if username:
@@ -28,8 +27,8 @@ def before_request():
             g.token = token
             g.role = {'client': 'client'}
     return
-    
-    
+
+
 @api.teardown_request
 def handle_teardown_request(exception):
     db.session.remove()
@@ -52,8 +51,8 @@ def get_multi_qiniu_token():
         token = current_app.q.upload_token(current_app.bucket_name, key, 3600)
         key_token_s.append({'key': key, 'token': token})
     return jsonify({'code': 1, 'key_token_s': key_token_s})
- 
-    
+
+
 @api.route('/get-qiniu-token')
 @login_check
 def get_qiniu_token():
