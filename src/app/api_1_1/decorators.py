@@ -10,6 +10,9 @@ def login_check(f):
         if not g.token:
             return jsonify({'code': 0, 'message': 'Validation Needed'}), 401
         
+        if not g.role:
+            return jsonify({'code': 0, 'message': 'Token Expire'}), 401
+
         if g.role.has_key('manager'):
             username = redis.hget('token:%s' % token, 'id')
             if not username or g.token != redis.hget('manager:%s' % username, 'token'):

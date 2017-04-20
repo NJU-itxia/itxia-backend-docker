@@ -13,10 +13,8 @@ def before_request():
     g.current_manager = None
     g.current_client = None
     g.token = token
+    g.role = None
     role = redis.hget('token:%s' % token, 'role')
-
-    if not role:
-        return jsonify({'code': 0, 'message': 'Token Expire'}), 401
 
     if role == 'manager':
         username = redis.hget('token:%s' % token, 'id')
