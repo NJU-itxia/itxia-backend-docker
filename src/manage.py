@@ -10,16 +10,15 @@ migrate = Migrate(app, db)
 
 def make_shell_context():
     return dict(app=app, db=db, Manager=Manager, Client=Client, Comment = Comment, Form=Form)
-    
-@manager.command    
+
+@manager.command
 def testdb():
-    Client.generate_fake(10) #构造虚拟用户
-    Manager.generate_fake(10) #构造虚拟itxia
-    Form.generate_fake(10) #构造虚拟订单
+    Client.generate_fake(10) 
+    Manager.generate_fake(10) 
+    Form.generate_fake(10) 
     Comment.generate_fake(10)
 
-    
-                   
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 

@@ -11,17 +11,17 @@ def login_check(f):
             return jsonify({'code': 0, 'message': 'Validation Needed'}), 401
         
         if g.role.has_key('manager'):
-            username = redis.get('token:%s' % g.token)
+            username = redis.hget('token:%s' % token, 'id')
             if not username or g.token != redis.hget('manager:%s' % username, 'token'):
                 return jsonify({'code': 2, 'message': 'Wrong Validation'}), 401
-        else:
-            phone_number = redis.get('token:%s' % g.token)
+        elif g.role.has_key('client'):
+            phone_number = redis.hget('token:%s' % token, 'id')
             if not phone_number or g.token != redis.hget('client:%s' % phone_number, 'token'):
                 return jsonify({'code': 2, 'message': 'Wrong Validation'}), 401
 
         return f(*args, **kwargs)
     return decorator
-    
+
 def manager_check(f):
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -29,19 +29,20 @@ def manager_check(f):
             return jsonify({'code': 0, 'message': 'No Permission'}), 401
         return f(*args, **kwargs)
     return decorator
-    
+
 def admin_check(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-        if g.role['manager'] != 'admin':
+        if not g.role.has_key('manager') or g.role['manager'].role != 'admin':
             return jsonify({'code': 0, 'message': 'No Permission'}), 401
+
         return f(*args, **kwargs)
     return decorator
     
 def superadmin_check(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-        if g.role['manager'] != 'superadmin':
+        if not g.role.has_key('manager') or g.role['manager'].role != 'superadmin':
             return jsonify({'code': 0, 'message': 'No Permission'}), 401
         return f(*args, **kwargs)
     return decorator

@@ -15,6 +15,10 @@ def add_manager():
     email = request.get_json().get('email') or ''
     campus = request.get_json().get('campus') or ''
 
+    manager = Manager.query.filter_by(username=username).first()
+    if manager:
+        return jsonify({'code': 0, 'message': 'Nickname had been registered'}), 403
+
     new_manager = Manager(username=username, password=password, email=email, campus=campus)
     db.session.add(new_manager)
     print username, password
@@ -23,11 +27,11 @@ def add_manager():
     except Exception as e:
         print e
         db.session.rollback()
-        return jsonify({'code': 0, 'message': 'Nickname had been registered'}), 403
+        return jsonify({'code': 0, 'message': 'The Mail Has Been Registered'})
 
     return jsonify({'code': 1, 'message': 'Register Successfully'})
 
-@api.route('/admin/uplevel_manager', methods=['PUT'])
+@api.route('/admin/uplevel_manager', methods=['PATCH'])
 @login_check
 @admin_check
 def uplevel_manager():

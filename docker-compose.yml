@@ -1,32 +1,35 @@
-version: '2'
+version: '2.1'
 
 services:
   redis:
     image: redis
+    container_name: itxia_redis
     command: redis-server --requirepass secret_password
     volumes:
       - ./redis:/var/lib/redis
-    environment:
-      REDIS_PASSWORD: secret_password
+    env_file: .env
     expose:
       - '6379'
+    healthcheck:
+      test: "exit 0"
       
   db:
     image: mysql
+    container_name: itxia_mysql
     expose:
       - "3306"
     volumes:
       - ./db:/var/lib/mysql
       - ./config/mysql.cnf:/etc/mysql/mysql.conf.d/mysql.cnf
-    environment:
-      MYSQL_USERNAME: root
-      MYSQL_ROOT_PASSWORD: cliff522..
-      MYSQL_DATABASE: apidb
+    env_file: .env
+    healthcheck:
+      test: "exit 0"
 
   nginx:
     image: nginx:latest
+    container_name: itxia_nginx
     ports:
-      - "80:80"
+      - "5000:5000"
     volumes:
       - ./src:/src
       - ./config/nginx:/etc/nginx/conf.d
@@ -35,24 +38,18 @@ services:
       
   web:
     build: .
-    command: bash -c "python manage.py db init && python manage.py db migrate -m 'v1_1' && python manage.py db upgrade && python manage.py testdb && gunicorn wsgi:application -b 0.0.0.0:80 || gunicorn wsgi:application -b 0.0.0.0:80"
-    environment:
-      PYTHONUNBUFFERED: 'true'
-      REDIS_PASSWORD: secret_password
-      MYSQL_USERNAME: root
-      MYSQL_ROOT_PASSWORD: cliff522..
-      MYSQL_DATABASE: apidb
+    container_name: itxia_web
+    command: bash -c "python manage.py db init && python manage.py db migrate -m 'v1_1' && python manage.py db upgrade && python manage.py testdb && gunicorn wsgi:application -b 0.0.0.0:5000 || gunicorn wsgi:application -b 0.0.0.0:5000"
+    env_file: .env 
     volumes:
       - ./src:/src
     expose:
-      - "80"
+      - "5000"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     links:
       - db
       - redis
-
-volumes:
-  redis:
-  db:

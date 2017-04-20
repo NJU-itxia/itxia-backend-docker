@@ -9,24 +9,25 @@ from .decorators import login_check, admin_check, superadmin_check
 
 @api.before_request
 def before_request():
-    token = request.headers.get('Token') 
-    role = request.headers.get('Role')
+    token = request.headers.get('Token')
     g.current_manager = None
     g.current_client = None
-    g.token = None
+    g.token = token
+    role = redis.hget('token:%s' % token, 'role')
+
+    if not role:
+        return jsonify({'code': 0, 'message': 'Token Expire'}), 401
+
     if role == 'manager':
-        username = redis.get('token:%s' % token)
+        username = redis.hget('token:%s' % token, 'id')
         if username:
             g.current_manager = Manager.query.filter_by(username=username).first()
-            g.token = token
-            g.role = {'manager': g.current_manager.role}
-    else:
-        phone_number = redis.get('token:%s' % token)
+            g.role = {'manager': g.current_manager}
+    elif role == 'client':
+        phone_number = redis.hget('token:%s' % token, 'id')
         if phone_number:
             g.current_client = Client.query.filter_by(phone_number=phone_number).first()
-            g.token = token
-            g.role = {'client': 'client'}
-    return
+            g.role = {'client': g.current_client}
 
 
 @api.teardown_request

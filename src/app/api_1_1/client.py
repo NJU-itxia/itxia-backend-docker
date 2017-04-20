@@ -61,13 +61,13 @@ def client_login():
     # Store the client login state in redis
     pipeline = redis.pipeline()
     pipeline.hmset('client:%s' % client.phone_number, {
-        'token': token, 'email': client.email, 'app_online': 1})
-    pipeline.set('token:%s' % token, client.phone_number)
+        'token': token, 'app_online': 1})
+    pipeline.hmset('token:%s' % token, {'role': 'client', 'id': client.phone_number})
     pipeline.expire('token:%s' % token, 3600 * 24 * 30)
     pipeline.execute()
 
     return jsonify({
-        'code': 1, 'message': 'Log in Successfully', 'email': client.email, 'token': token})
+        'code': 1, 'message': 'Log in Successfully', 'token': token})
 
 
 @api.route('/client')
@@ -241,6 +241,7 @@ def register():
         return jsonify({'code': 0, 'message': 'Wrong Password confirm'})
     new_client = Client(phone_number=phone_number,
                         password=password, email=email)
+    db.session.add(new_client)
     try:
         db.session.commit()
     except Exception as e:
@@ -283,6 +284,8 @@ def form_post():
 @login_check
 def client_forms():
     client = g.current_client
+    if not client:
+        return jsonify({'code': 1, 'message': 'Wrong request'})
     page = request.args.get('page', 1, type=int)
     pagination = Form.query.filter_by(post_client_id=client.id).paginate(
         page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'],

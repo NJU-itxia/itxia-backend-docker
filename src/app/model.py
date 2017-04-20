@@ -17,8 +17,8 @@ class Manager(db.Model):
     register_time = db.Column('register_time', db.DateTime, index=True, default=datetime.now)
     handle_forms = db.relationship('Form', backref='handle_manager', lazy='dynamic', uselist=True)
     comments = db.relationship('Comment', backref='comment_manager', lazy='dynamic', uselist=True)
-    
-    
+
+
     @staticmethod
     def generate_fake(count=100):
         from sqlalchemy.exc import IntegrityError

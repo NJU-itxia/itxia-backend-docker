@@ -9,25 +9,27 @@ from app.util import message_validate
 from .decorators import login_check, manager_check
 from sqlalchemy import func
 from . import api
-    
+
 
 @api.route('/managers', methods=['GET'])
 def get_all_managers():
     managers = Manager.query.all()
     return jsonify({'code': 1, 'managers': [manager.to_json() for manager in managers]})
-    
-     
+
+
 @api.route('/manager/login', methods=['POST'])
 def manager_login():
     if not request or not request.get_json():
         return jsonify({'code': 0, 'message': 'Wrong Request Format'}), 400
+
     username = request.get_json().get('username') or ''
     encryption_str = request.get_json().get('encryption_str') or ''
     random_str = request.get_json().get('random_str') or ''
     time_stamp = request.get_json().get('time_stamp') or ''
-    manager = Manager.query.filter_by(username=username).first() 
 
-    if not username:
+    manager = Manager.query.filter_by(username=username).first()
+
+    if not manager:
         return jsonify({'code': 0, 'message': 'No Manager Exist'}), 401
 
     password_in_sql = manager.password
@@ -48,20 +50,19 @@ def manager_login():
     token = m.hexdigest()
 
     pipeline = redis.pipeline()
-    pipeline.hmset('manager:%s' % manager.username, {'token': token, 'email': manager.email, 'app_online': 1})
-    pipeline.set('token:%s' % token, manager.username)
+    pipeline.hmset('manager:%s' % manager.username, {'token': token, 'app_online': 1})
+    pipeline.hmset('token:%s' % token, {'role': 'manager', 'id': manager.username})
     pipeline.expire('token:%s' % token, 3600*24*30)
     pipeline.execute()
 
-    return jsonify({'code': 1, 'message': 'Log In Successfully', 'email': manager.email, 'token': token})
-    
+    return jsonify({'code': 1, 'message': 'Log In Successfully', 'token': token})
+
 @api.route('/manager')
 @login_check
 @manager_check
 def manager():
     manager = g.current_manager
-    email = redis.hget('manager:%s' % manager.username, 'email')
-    return jsonify({'code': 1, 'email': email, 'username': manager.username, 'campus': manager.campus, 'forms': [form.to_json() for form in manager.handle_forms], 'comment': [comment.to_json() for comment in manager.comments]})
+    return jsonify({'code': 1, 'email': manager.email, 'username': manager.username, 'campus': manager.campus, 'forms': [form.to_json() for form in manager.handle_forms], 'comment': [comment.to_json() for comment in manager.comments]})
 
 
 @api.route('/manager/logout')
@@ -108,7 +109,7 @@ def get_waiting_forms():
     next = None
     if pagination.has_next:
         next = url_for('api.get_waiting_forms', page=page+1, _external=True)
-    
+
     status_tuple = db.session.query(Form.status, func.count(Form.status)).group_by(Form.status).all()
     status_json = json.dumps(dict(status_tuple))
     return jsonify({
@@ -119,8 +120,7 @@ def get_waiting_forms():
         'next': next,
         'count': status_json,
         })
-        
-        
+
 @api.route('/manager/working_forms', methods=['GET'])
 @login_check
 @manager_check
@@ -136,7 +136,7 @@ def get_working_forms():
     next = None
     if pagination.has_next:
         next = url_for('api.get_working_forms', page=page+1, _external=True)
-    
+
     status_tuple = db.session.query(Form.status, func.count(Form.status)).group_by(Form.status).all()
     status_json = json.dumps(dict(status_tuple))
     return jsonify({
@@ -147,7 +147,7 @@ def get_working_forms():
         'next': next,
         'count': status_json,
         })
-    
+
 @api.route('/manager/done_forms', methods=['GET'])
 @login_check
 @manager_check
@@ -174,12 +174,12 @@ def get_done_forms():
         'next': next,
         'count': status_json,
         })
-        
+
 @api.route('/manager/all_forms', methods=['GET'])
 @login_check
 @manager_check
 def get_all_forms():
     forms = Form.query.all()
     return jsonify({'code': 1, 'forms': [form.to_json() for form in forms]})
-    
+
 
