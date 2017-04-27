@@ -27,6 +27,10 @@ sudo add-apt-repository \
 ```
 
 ```
+sudo service docker restart
+```
+
+```
 sudo apt-get update
 ```
 
