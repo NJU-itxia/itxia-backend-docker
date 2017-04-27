@@ -27,7 +27,9 @@
 
 ### 重新启动和关闭 docker
 运行 `sudo docker-compose up` 时，log 信息显示在终端界面上， 可以按 `ctrl + c` 关闭 
-如果不想运行在终端界面，而是后台静默运行， 可以 `sudo docker-compose up -d` 启动 docker containers 
+
+如果不想运行在终端界面，而是后台静默运行， 可以 `sudo docker-compose up -d` 启动 docker containers
+
 关闭运行 `sudo docker-compose stop`
 
 ### 查看 docker containers
