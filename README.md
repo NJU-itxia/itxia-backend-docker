@@ -1,37 +1,39 @@
-# itxia-docker
+# itxia-docker #
+
 ## api 文档见 http://docs.itxiabacken.apiary.io/#reference
-##安装docker以及docker-compose
-[install docker in ubuntu]
-[install docker in ubuntu]: https://docs.docker.com/v1.7/docker/installation/ubuntulinux/
-[install docker-compose in ubuntu]
-[install docker-compose in ubuntu]: https://docs.docker.com/v1.7/compose/install/
 
-##git仓库
-`https://github.com/NJU-itxia/itxia-docker.git`
+## 环境依赖安装
 
-##启动docker
-`cd itxia-docker`  
-`sudo docker-compose up ` 
+### 安装 pip
+`sudo apt-get install python-pip`
 
-##mysql初始化
-`cd itxia-docker`
-```
-sudo docker-compose run --rm website python manage.py db init
-sudo docker-compose run --rm website python manage.py db migrate -m 'new' 
-sudo docker-compose run --rm website python manage.py db upgrade 
-sudo docker-compose run --rm website python manage.py testdb 
-```
+### 安装 docker 以及 docker-compose 
+[install docker in ubuntu](https://docs.docker.com/v1.7/docker/installation/ubuntulinux/) 
 
-###最好做这一步
-`sudo docker-compose stop` 
+[install docker-compose in ubuntu](https://docs.docker.com/v1.7/compose/install/)
 
+### 下载源码
+`git clone https://github.com/NJU-itxia/itxia-backend-docker.git`
+
+### 进入文件
+`cd itxia-backend-docker`
+
+## 启动服务
+
+### 启动 docker containers
 `sudo docker-compose up` 
 
-##测试api
-`cd itxia-docker`  
+## 注意事项
 
-`pip install -r requirements.txt`  
+### 重新启动和关闭 docker
+运行 `sudo docker-compose up` 时，log 信息显示在终端界面上， 可以按 `ctrl + c` 关闭 
+如果不想运行在终端界面，而是后台静默运行， 可以 `sudo docker-compose up -d` 启动 docker containers 
+关闭运行 `sudo docker-compose stop`
 
-`python client_test.py`  
-`
+### 查看 docker containers
+`sudo docker-compose ps`
 
+或者
+
+`sudo docker ps -a`
+  
