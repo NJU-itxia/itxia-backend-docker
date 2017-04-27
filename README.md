@@ -2,7 +2,7 @@
 
 ## api 文档见 http://docs.itxiabacken.apiary.io/#reference
 
-## 1 环境依赖安装
+## 1. 环境依赖安装
 
 ### 安装 pip
 `sudo apt-get install python-pip`
@@ -47,12 +47,12 @@ sudo pip install docker-compose
 ### 进入文件
 `cd itxia-backend-docker`
 
-## 2 启动服务
+## 2. 启动服务
 
 ### 启动 docker containers
 `sudo docker-compose up` 
 
-## 3 注意事项
+## 3. 注意事项
 
 ### 重新启动和关闭 docker
 运行 `sudo docker-compose up` 时，log 信息显示在终端界面上， 可以按 `ctrl + c` 关闭 
