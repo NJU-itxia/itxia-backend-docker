@@ -12,6 +12,9 @@
 
 [install docker-compose in ubuntu](https://docs.docker.com/v1.7/compose/install/)
 
+### 配置 docker image repository
+`curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://b9a7cc7f.m.daocloud.io`
+
 ### 下载源码
 `git clone https://github.com/NJU-itxia/itxia-backend-docker.git`
 
