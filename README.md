@@ -8,9 +8,35 @@
 `sudo apt-get install python-pip`
 
 ### 安装 docker 以及 docker-compose 
-[install docker in ubuntu](https://docs.docker.com/v1.7/docker/installation/ubuntulinux/) 
+```
+sudo apt-get -y install \
+  apt-transport-https \
+  ca-certificates \
+  curl
+```
 
-[install docker-compose in ubuntu](https://docs.docker.com/v1.7/compose/install/)
+```
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+```
+
+```
+sudo add-apt-repository \
+       "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+       $(lsb_release -cs) \
+       stable"
+```
+
+```
+sudo apt-get update
+```
+
+```
+sudo apt-get -y install docker-ce
+```
+
+```
+sudo pip install docker-compose
+```
 
 ### 配置 docker image repository
 `curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://b9a7cc7f.m.daocloud.io`
