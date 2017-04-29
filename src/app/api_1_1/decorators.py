@@ -14,11 +14,11 @@ def login_check(f):
             return jsonify({'code': 0, 'message': 'Token Expire'}), 401
 
         if g.role.has_key('manager'):
-            username = redis.hget('token:%s' % token, 'id')
+            username = redis.hget('token:%s' % g.token, 'id')
             if not username or g.token != redis.hget('manager:%s' % username, 'token'):
                 return jsonify({'code': 2, 'message': 'Wrong Validation'}), 401
         elif g.role.has_key('client'):
-            phone_number = redis.hget('token:%s' % token, 'id')
+            phone_number = redis.hget('token:%s' % g.token, 'id')
             if not phone_number or g.token != redis.hget('client:%s' % phone_number, 'token'):
                 return jsonify({'code': 2, 'message': 'Wrong Validation'}), 401
 
